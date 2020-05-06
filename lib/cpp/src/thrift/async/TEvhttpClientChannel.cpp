@@ -81,13 +81,14 @@ void TEvhttpClientChannel::sendAndRecvMessage(const VoidCallback& cob,
   if (rv != 0) {
     throw TException("evbuffer_add failed");
   }
-
+  //push first in order to not get race condition if using separate thread for event loop.
+  completionQueue_.push(Completion(cob, recvBuf));
+  
   rv = evhttp_make_request(conn_, req, EVHTTP_REQ_POST, path_.c_str());
   if (rv != 0) {
     throw TException("evhttp_make_request failed");
   }
 
-  completionQueue_.push(Completion(cob, recvBuf));
 }
 
 void TEvhttpClientChannel::sendMessage(const VoidCallback& cob,
